@@ -1,0 +1,30 @@
+---
+title: "Where does the rain fall in Spain('s Six Largest Cities)?"
+author: "Noah DiAntonio"
+date: "8/19/2021"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## The Data
+```{r, comment = ""}
+library(leaflet)
+spaindata <- data.frame(c("Madrid","Barcelona","Valencia","Seville","Bilbao","Málaga"), c("436mm","640mm","454mm","534mm","1195mm","524mm"),c(40.416775,41.385063,39.470242,37.382641,43.263012,36.719631),c(-3.703790,2.173404,-0.376800,-5.996300,-2.934985,-4.420000))
+names(spaindata) <- c("City", "Precipitation", "Latitude", "Longitude")
+spaindata
+```
+
+## The Rain in Spain!
+```{r}
+rainicon <- makeIcon(iconUrl = "https://openclipart.org/image/800px/178744", iconWidth = 45*215/230, iconHeight = 45,
+  iconAnchorX = 31*215/230/2, iconAnchorY = 16)
+```
+```{r, message=FALSE}
+spaindata %>%
+        leaflet() %>%
+        addTiles() %>%
+        addMarkers(icon = rainicon, popup = paste(spaindata[,1], "<br>", spaindata[,2]))
+```
