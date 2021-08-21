@@ -1,0 +1,69 @@
+---
+title: "Comparing Poverty and Inequality"
+author: "Noah DiAntonio"
+date: "8/20/2021"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(plotly)
+library(plyr)
+```
+
+```{r}
+if(!file.exists("ginidata.csv")) {
+        file.create("ginidata.csv")
+}
+url <- "https://datahub.io/world-bank/si.pov.gini/r/data.csv"
+download.file(url, "ginidata.csv")
+ginidata <- read.csv("ginidata.csv")
+```
+
+```{r}
+## max(count(ginidata$Year)$freq)
+ginidata2010 <- ginidata[ginidata$Year == "2010",]
+ginidata2010 <- ginidata2010[,-3]
+ginidata2010 <- ginidata2010[,-2]
+colnames(ginidata2010) <- c("Country", "GINICoef")
+```
+
+```{r}
+if(!file.exists("povdata.zip")) {
+        file.create("povdata.zip")
+}
+url <- "https://api.worldbank.org/v2/en/topic/11?downloadformat=csv"
+download.file(url, "povdata.zip", mode="wb")
+unzip("povdata.zip")
+povdata <- read.csv("API_11_DS2_en_csv_v2_2764657.csv", skip = 4, header = TRUE)
+```
+
+```{r}
+povdata2010 <- cbind(povdata$Country.Name, povdata$Indicator.Code, povdata$X2010)
+colnames(povdata2010) <- c("Country", "Indicator","Poverty")
+povdata2010 <- as.data.frame(povdata2010)
+povdata2010$Poverty <- as.numeric(povdata2010$Poverty)
+povdata2010 <- povdata2010[!is.na(povdata2010$Poverty),]
+povdata2010 <- povdata2010[povdata2010$Indicator == "SI.POV.DDAY",]
+povdata2010 <- povdata2010[,-2]
+```
+
+```{r}
+totaldata <- merge(ginidata2010, povdata2010, by = "Country")
+Continent <- c("South America", "Asia", "Oceania", "Europe", "Asia", "Europe", "Europe", "Europe", "North America", "South America", "North America", "Europe", "Europe", "Europe", "Europe", "North America", "South America", "Africa", "North America", "Europe", "Africa", "Europe", "Europe", "Africa", "Asia", "Europe", "Europe", "Africa", "North America", "Europe", "Europe", "Europe", "Asia", "Europe", "Asia", "Asia", "Asia", "Europe", "Asia", "Europe", "Europe", "Europe", "Africa", "Africa", "Europe", "North America", "Europe", "Asia", "Asia", "Europe", "Europe", "Asia", "North America", "South America", "South America", "Europe", "Europe", "Europe", "Europe", "Africa", "Africa", "Europe", "Europe", "Africa", "Europe", "Europe", "Europe", "Asia", "Asia", "Asia", "Oceania", "Europe", "Europe", "North America", "South America", "Oceania", "Asia", "Asia", "Africa")
+totaldata <- cbind(totaldata, Continent)
+```
+
+## Comparing Poverty and Inequality in 2010
+```{r}
+p <- plot_ly(data = totaldata, x = totaldata$GINICoef, y = totaldata$Poverty, mode = "markers", color = as.factor(totaldata$Continent), hoverinfo = "text", text = paste(totaldata$Country))
+layout(p, title = "Poverty and Inequality (2010)", xaxis=list(title="GINI Coefficient (2010)"), yaxis=list(title="Poverty Headcount Ratio (% of population) (2010)"))
+```
+
+## Data Sources
+Poverty Data: https://api.worldbank.org/v2/en/topic/11?downloadformat=csv
+
+Inequality Data: https://datahub.io/world-bank/si.pov.gini/r/data.csv
